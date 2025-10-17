@@ -7,7 +7,7 @@ import edge_tts
 from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, concatenate_videoclips
 from datetime import datetime
 
-# === Paths ===
+# Paths
 project_folder = os.path.join(os.getcwd(), "Reddit Project")
 csv_path = os.path.join(project_folder, "stories.csv")
 audio_output_folder = os.path.join(project_folder, "audio output")
@@ -17,7 +17,7 @@ vbin_folder = os.path.join(project_folder, "vbin")
 os.makedirs(audio_output_folder, exist_ok=True)
 os.makedirs(video_output_folder, exist_ok=True)
 
-# === Ask user: CSV or manual input ===
+# Ask user: CSV or manual input
 print("Select input method:")
 print("1. Use CSV (process new stories)")
 print("2. Paste a new story manually")
@@ -81,7 +81,7 @@ elif choice == "2":
 else:
     raise ValueError("Invalid choice. Enter 1 or 2.")
 
-# === Clean text ===
+# Clean text to avoid random tts pausing
 story_text = re.sub(r'\[.*?\]\(.*?\)', '', story_text)
 story_text = re.sub(r'\*\*?', '', story_text)
 story_text = re.sub(r'#{1,6}\s', '', story_text)
@@ -95,7 +95,7 @@ story_text = '\n'.join([line.strip() for line in story_text.split('\n') if line.
 print(f"\nProcessing story: {story_title[:50]}...")
 print(f"Story length: {len(story_text)} chars")
 
-# === Generate unique filenames ===
+# Generate unique filenames for puvlish
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 safe_title = re.sub(r'[^\w\s-]', '', story_title)[:50]
 safe_title = re.sub(r'[-\s]+', '_', safe_title)
@@ -104,12 +104,12 @@ unique_name = f"{safe_title}_{timestamp}"
 VOICE = "en-US-ChristopherNeural"
 final_audio_file = os.path.join(audio_output_folder, f"{unique_name}.mp3")
 
-# === Async TTS ===
+# Async TTS & speed up for more enjoyable audio experience
 async def generate_tts(text, output_file):
     communicate = edge_tts.Communicate(text, VOICE, rate="+35%")
     await communicate.save(output_file)
 
-# === Split text into chunks for TTS ===
+# Split text into chunks for TTS, struggles with longer files
 max_chars = 4000
 
 # Split the entire story_text into chunks (including title)
@@ -127,7 +127,7 @@ for sentence in sentences:
 if current_chunk:
     chunks.append(current_chunk.strip())
 
-# === Generate audio ===
+# Generate audio onto local machine
 temp_audio_files = []
 for i, chunk in enumerate(chunks):
     print(f"Processing chunk {i+1}/{len(chunks)}...")
@@ -149,7 +149,7 @@ for clip in audio_clips:
 
 print(f"✅ Audio generated: {final_audio_file}")
 
-# === Background video ===
+# Background videos generated locally
 video_files = [f for f in os.listdir(vbin_folder) if f.endswith(".mp4")]
 if not video_files:
     raise FileNotFoundError("No .mp4 files found in vbin folder.")
@@ -165,7 +165,7 @@ else:
 
 background = background.with_audio(audio_clip)
 
-# === Add title text overlay ===
+# Add title text overlay
 try:
     title_lines = [story_title[i:i+40] for i in range(0, len(story_title), 40)]
     txt_clip = (TextClip("\n".join(title_lines), fontsize=50, color='white',
@@ -185,8 +185,9 @@ background.close()
 final_video.close()
 print(f"✅ Video saved: {output_path}")
 
-# === Mark story as processed in CSV if applicable ===
+# Mark story as processed in CSV if applicable
 if choice == "1" and mark_processed and original_index is not None:
     df.loc[original_index, 'processed'] = 1
     df.to_csv(csv_path, index=False)
+
     print("✅ Story marked as processed in CSV.")
