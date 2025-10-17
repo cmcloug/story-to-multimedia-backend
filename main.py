@@ -8,7 +8,7 @@ from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, 
 from datetime import datetime
 
 # Paths
-project_folder = os.path.join(os.getcwd(), "Reddit Project")
+project_folder = os.path.join(os.getcwd(), "----")
 csv_path = os.path.join(project_folder, "stories.csv")
 audio_output_folder = os.path.join(project_folder, "audio output")
 video_output_folder = os.path.join(project_folder, "video output")
@@ -191,3 +191,4 @@ if choice == "1" and mark_processed and original_index is not None:
     df.to_csv(csv_path, index=False)
 
     print("✅ Story marked as processed in CSV.")
+
